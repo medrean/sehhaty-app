@@ -1,0 +1,35 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif !important; }
+body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+header { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+.secure-b { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+main { flex: 1; display: flex; justify-content: center; padding: 25px 15px; gap: 20px; flex-wrap: wrap; max-width: 950px; margin: 0 auto; width: 100%; }
+.wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.01); }
+.summary-card { max-width: 330px; flex: 1 1 290px; height: fit-content; }
+.payment-card { max-width: 480px; flex: 1 1 380px; }
+.title { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1.5px solid #f1f5f9; }
+.row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #f1f5f9; font-size: 13px; }
+.row:last-child { border: none; padding-top: 12px; }
+.total-p { font-size: 18px; color: #7b2cbf; font-weight: 900; }
+.i-card { width: 100%; height: 160px; background: linear-gradient(135deg, #1e1b4b 0%, #311054 50%, #4c1d95 100%); border-radius: 16px; padding: 20px; color: white; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 15px rgba(76,29,149,0.15); margin-bottom: 20px; }
+.chip { width: 34px; height: 24px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 5px; }
+.c-num-g { font-size: 18px; font-weight: 600; letter-spacing: 2px; text-align: center; margin: 12px 0; font-family: monospace; }
+.c-foot-g { display: flex; justify-content: space-between; font-size: 11px; }
+.form-group { margin-bottom: 15px; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 5px; }
+.input-c { position: relative; display: flex; align-items: center; }
+.input-c .logo-in { position: absolute; left: 12px; font-size: 12px; font-weight: bold; color: #7b2cbf; }
+input { width: 100%; height: 45px; border-radius: 10px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 14px; font-weight: 700; color: #0f172a; outline: none; transition: all 0.2s; }
+input:focus { border-color: #7b2cbf; box-shadow: 0 0 0 3px rgba(123,44,191,0.08); }
+input.error { border-color: #ef4444; background: #fffafb; }
+input.success { border-color: #22c55e; }
+.pay-btn { width: 100%; height: 48px; background: #cbd5e1; color: #94a3b8; border: none; border-radius: 12px; font-size: 15px; font-weight: 900; cursor: not-allowed; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.pay-btn.enabled { background: #7b2cbf; color: white; cursor: pointer; }
+.pay-btn.enabled:hover { background: #6a1b9a; transform: translateY(-1px); }
+.sec-f { text-align: center; margin-top: 12px; font-size: 11px; color: #64748b; font-weight: 600; }
+.visa-t { font-size: 16px; font-weight: 900; font-style: italic; color: #1434cb; font-family: sans-serif; }
+.mc-logo { display: flex; align-items: center; }
+.mc-r { width: 14px; height: 14px; border-radius: 50%; background: #eb001b; margin-left: -5px; }
+.mc-o { width: 14px; height: 14px; border-radius: 50%; background: #f79e1b; opacity: 0.9; }
+.mada-b { font-family: sans-serif; font-size: 8px; color: #007cc2; font-weight: 900; }
